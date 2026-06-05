@@ -143,6 +143,9 @@ function toEntries(arr) {
   return arr.map(normalizeEntry).filter(e => e.name.length > 0);
 }
 
+const ENTRY_PHOTO_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M3 16l4.5-4.5 3.5 3.5L14 12l7 7"/></svg>';
+const ENTRY_DELETE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
 function createEntryMediaButton(entry, idx) {
   const mediaBtn = document.createElement('button');
   mediaBtn.className = 'entry-media-btn';
@@ -152,15 +155,17 @@ function createEntryMediaButton(entry, idx) {
 
   const weight = getEntryWeight(entry);
   mediaBtn.title = entry.image
-    ? `Photo & weight (${weight}×)`
+    ? `Photo and weight (${weight}×)`
     : `Add photo or set weight (${weight}×)`;
 
-  const ellipse = document.createElement('span');
-  ellipse.className = 'entry-media-ellipse' + (entry.image ? ' has-image' : '');
+  const thumb = document.createElement('span');
+  thumb.className = 'entry-media-thumb' + (entry.image ? ' has-image' : '');
   if (entry.image) {
-    ellipse.style.backgroundImage = `url(${entry.image})`;
+    thumb.style.backgroundImage = `url(${entry.image})`;
+  } else {
+    thumb.innerHTML = ENTRY_PHOTO_ICON_SVG;
   }
-  mediaBtn.appendChild(ellipse);
+  mediaBtn.appendChild(thumb);
 
   if (weight !== 1) {
     const badge = document.createElement('span');
@@ -170,6 +175,17 @@ function createEntryMediaButton(entry, idx) {
   }
 
   return mediaBtn;
+}
+
+function createEntryDeleteButton(idx, title = 'Delete this name') {
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'btn-icon btn-icon-red btn-icon-svg';
+  deleteBtn.type = 'button';
+  deleteBtn.dataset.index = idx;
+  deleteBtn.dataset.action = 'delete';
+  deleteBtn.title = title;
+  deleteBtn.innerHTML = ENTRY_DELETE_ICON_SVG;
+  return deleteBtn;
 }
 
 /* ==========================================================================
@@ -1310,19 +1326,9 @@ function renderNamesList() {
       drawWheel();
     });
 
-    const mediaBtn = createEntryMediaButton(entry, idx);
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn-icon btn-icon-red';
-    deleteBtn.type = 'button';
-    deleteBtn.dataset.index = idx;
-    deleteBtn.dataset.action = 'delete';
-    deleteBtn.title = 'Delete this name';
-    deleteBtn.innerText = '🗑';
-
     row.appendChild(input);
-    row.appendChild(mediaBtn);
-    row.appendChild(deleteBtn);
+    row.appendChild(createEntryMediaButton(entry, idx));
+    row.appendChild(createEntryDeleteButton(idx));
 
     container.appendChild(row);
   });
@@ -1501,6 +1507,7 @@ function renderPresetNamesList() {
 
     row.appendChild(input);
     row.appendChild(createEntryMediaButton(entry, idx));
+    row.appendChild(createEntryDeleteButton(idx, 'Remove from preset'));
 
     container.appendChild(row);
   });
@@ -1876,13 +1883,24 @@ document.addEventListener('DOMContentLoaded', () => {
       openMediaModalForIndex(idx, 'main');
     }
   });
-  // Preset modal names list media button delegation
+  // Preset modal names list actions
   document.getElementById('modal-preset-names-list').addEventListener('click', (e) => {
-    const btn = e.target.closest('.entry-media-btn');
+    const btn = e.target.closest('button');
     if (!btn) return;
+    const action = btn.dataset.action;
     const idx = parseInt(btn.dataset.index, 10);
     if (isNaN(idx)) return;
-    openMediaModalForIndex(idx, 'preset');
+
+    if (action === 'media') {
+      openMediaModalForIndex(idx, 'preset');
+      return;
+    }
+
+    if (action === 'delete') {
+      presetModalDraftEntries.splice(idx, 1);
+      document.getElementById('modal-preset-names').value = presetModalDraftEntries.map(en => en.name).join('\n');
+      renderPresetNamesList();
+    }
   });
 
   // Media modal buttons

@@ -16,10 +16,10 @@ A customisable, browser-based spinning wheel for randomly picking names, with ti
 - Settings persist in your browser via `localStorage`
 
 ### Per-entry photos and weight
-- Each name has a vertical ellipse button for entry settings
+- Each name has a circular photo button for entry settings
 - Add or replace a photo that appears on the wheel slice and in winner modals
 - Set a **weight ratio** per entry (default `1`). Higher weight means a larger slice and better odds
-- Weight badges appear on the ellipse when the ratio is not `1`
+- Weight badges appear on the photo button when the ratio is not `1`
 
 ### Wheel and visuals
 - Click **SPIN**, tap the wheel, or press **Space** to spin
