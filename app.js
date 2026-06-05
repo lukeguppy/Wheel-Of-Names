@@ -143,29 +143,36 @@ function toEntries(arr) {
   return arr.map(normalizeEntry).filter(e => e.name.length > 0);
 }
 
-const ENTRY_PHOTO_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M3 16l4.5-4.5 3.5 3.5L14 12l7 7"/></svg>';
-const ENTRY_DELETE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+const ICON_PHOTO_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M3 16l4.5-4.5 3.5 3.5L14 12l7 7"/></svg>';
+const ICON_TRASH_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
+function createIconButton(className, title, glyphHtml, dataset = {}) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `btn-icon ${className}`;
+  btn.title = title;
+  Object.entries(dataset).forEach(([key, value]) => {
+    btn.dataset[key] = value;
+  });
+  const glyph = document.createElement('span');
+  glyph.className = 'btn-icon-glyph';
+  glyph.innerHTML = glyphHtml;
+  btn.appendChild(glyph);
+  return btn;
+}
 
 function createEntryMediaButton(entry, idx) {
-  const mediaBtn = document.createElement('button');
-  mediaBtn.className = 'entry-media-btn';
-  mediaBtn.type = 'button';
-  mediaBtn.dataset.index = idx;
-  mediaBtn.dataset.action = 'media';
-
   const weight = getEntryWeight(entry);
-  mediaBtn.title = entry.image
-    ? `Photo and weight (${weight}×)`
-    : `Add photo or set weight (${weight}×)`;
+  const mediaBtn = createIconButton(
+    'btn-icon-photo' + (entry.image ? ' has-image' : ''),
+    entry.image ? `Photo and weight (${weight}×)` : `Add photo or set weight (${weight}×)`,
+    entry.image ? '' : ICON_PHOTO_SVG,
+    { index: idx, action: 'media' }
+  );
 
-  const thumb = document.createElement('span');
-  thumb.className = 'entry-media-thumb' + (entry.image ? ' has-image' : '');
   if (entry.image) {
-    thumb.style.backgroundImage = `url(${entry.image})`;
-  } else {
-    thumb.innerHTML = ENTRY_PHOTO_ICON_SVG;
+    mediaBtn.style.backgroundImage = `url(${entry.image})`;
   }
-  mediaBtn.appendChild(thumb);
 
   if (weight !== 1) {
     const badge = document.createElement('span');
@@ -178,14 +185,10 @@ function createEntryMediaButton(entry, idx) {
 }
 
 function createEntryDeleteButton(idx, title = 'Delete this name') {
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'btn-icon btn-icon-red btn-icon-svg';
-  deleteBtn.type = 'button';
-  deleteBtn.dataset.index = idx;
-  deleteBtn.dataset.action = 'delete';
-  deleteBtn.title = title;
-  deleteBtn.innerHTML = ENTRY_DELETE_ICON_SVG;
-  return deleteBtn;
+  return createIconButton('btn-icon-red', title, ICON_TRASH_SVG, {
+    index: idx,
+    action: 'delete'
+  });
 }
 
 /* ==========================================================================
