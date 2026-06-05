@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Wheel of Names</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Include Outfit Font from Google Fonts for a modern, sleek aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Container for the entire application layout -->
+  <div class="app-container">
+    
+    <!-- Collapsible Settings Panel (Left side) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <h2>Wheel Of Names</h2>
+        </div>
+        <button class="close-sidebar-btn" id="close-sidebar-btn" title="Close Panel">✕</button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Section: Entries (with inline preset controls) -->
+        <section class="settings-section expanded">
+          <div class="section-header">
+            <div class="section-title-row">
+              <h3>📝 Entries</h3>
+              <span class="badge" id="names-count">0 names</span>
+            </div>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="section-content-inner">
+              <!-- Preset bar: dropdown + save (opens modal) + delete in one row -->
+              <div class="preset-bar">
+                <select id="preset-select" class="form-control preset-select"></select>
+                <button id="save-preset-btn" class="btn-icon btn-icon-green" title="Save as new preset">＋</button>
+                <button id="delete-preset-btn" class="btn-icon btn-icon-red" title="Delete preset">🗑</button>
+              </div>
+
+              <div class="sub-section expanded">
+                <div class="sub-section-header">
+                  <span class="sub-title">Quick Fill</span>
+                  <span class="chevron-sub">▼</span>
+                </div>
+                <div class="sub-section-content">
+                  <div class="sub-section-inner">
+                    <div class="settings-group">
+                      <label for="names-input">Enter one name per line</label>
+                      <textarea id="names-input" placeholder="Enter one name per line..." class="form-control" rows="5"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sub-section">
+                <div class="sub-section-header">
+                  <span class="sub-title">Names & Media</span>
+                  <span class="chevron-sub">▼</span>
+                </div>
+                <div class="sub-section-content">
+                  <div class="sub-section-inner">
+                    <div id="names-list" class="names-list" aria-live="polite"></div>
+                    <div class="names-toolbar names-toolbar-bottom">
+                      <button id="add-name-btn" type="button" class="btn btn-secondary-outline">＋ Add name</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File actions -->
+              <div class="settings-group file-actions">
+                <label class="btn btn-secondary-outline file-label">
+                  📥 Import .txt
+                  <input type="file" id="import-file" accept=".txt" style="display: none;">
+                </label>
+                <button id="export-file-btn" class="btn btn-secondary-outline">📤 Export .txt</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Style & Themes -->
+        <section class="settings-section">
+          <div class="section-header">
+            <h3>🎨 Style & Themes</h3>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="section-content-inner">
+              <div class="settings-group">
+                <label for="skin-select">Wheel Style / Skin</label>
+                <select id="skin-select" class="form-control">
+                  <!-- Dynamically populated from skins.js -->
+                </select>
+              </div>
+              <div class="settings-group" id="theme-select-container">
+                <label for="theme-select">Color Theme</label>
+                <select id="theme-select" class="form-control">
+                  <option value="neon">Neon Cyberpunk</option>
+                  <option value="sunset">Sunset Glow</option>
+                  <option value="ocean">Ocean Breeze</option>
+                  <option value="pastel">Sweet Pastel</option>
+                  <option value="rainbow">Vibrant Rainbow</option>
+                  <option value="classic">Classic Wheel</option>
+                  <option value="custom">Custom Palette</option>
+                </select>
+              </div>
+
+              <!-- Custom Colors Inputs (visible when custom selected) -->
+              <div id="custom-theme-colors" class="settings-group custom-colors-container hidden">
+                <label>Custom Colors (Comma-separated hex codes)</label>
+                <input type="text" id="custom-colors-input" value="#ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93" class="form-control">
+                <small class="helper-text">Add 2 or more hex codes separated by commas</small>
+              </div>
+
+              <div class="checkbox-row">
+                <div class="settings-group checkbox-group">
+                  <input type="checkbox" id="show-boundaries">
+                  <label for="show-boundaries">Boundaries</label>
+                </div>
+                <div class="settings-group checkbox-group">
+                  <input type="checkbox" id="casino-ticker">
+                  <label for="casino-ticker">Casino pegs</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Sounds -->
+        <section class="settings-section">
+          <div class="section-header">
+            <h3>🔊 Sounds</h3>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="section-content-inner">
+              <div class="settings-group checkbox-group">
+                <input type="checkbox" id="sound-spin-tick" checked>
+                <label for="sound-spin-tick">Spin ticks</label>
+              </div>
+              <div class="settings-group">
+                <label for="sound-winner-type">Winner Sound Effect</label>
+                <select id="sound-winner-type" class="form-control">
+                  <!-- Dynamically populated from sounds.js -->
+                </select>
+              </div>
+              <div class="settings-group">
+                <label for="volume-slider">Volume</label>
+                <div class="slider-row">
+                  <span>🔇</span>
+                  <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5">
+                  <span>🔊</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Timer Settings -->
+        <section class="settings-section">
+          <div class="section-header">
+            <h3>⏱️ Winner Countdown</h3>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="section-content-inner">
+              <div class="settings-group checkbox-group">
+                <input type="checkbox" id="timer-enabled">
+                <label for="timer-enabled">Enable countdown timer</label>
+              </div>
+              <div id="timer-settings-details" class="timer-settings-details hidden">
+                <div class="settings-group">
+                  <label>Timer Duration</label>
+                  <div class="timer-duration-wrapper">
+                    <div class="duration-input-container">
+                      <input type="number" id="timer-min" min="0" max="60" value="01" placeholder="01">
+                      <span class="duration-unit">m</span>
+                    </div>
+                    <span class="timer-separator">:</span>
+                    <div class="duration-input-container">
+                      <input type="number" id="timer-sec" min="0" max="59" value="00" placeholder="00">
+                      <span class="duration-unit">s</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="checkbox-row">
+                  <div class="settings-group checkbox-group">
+                    <input type="checkbox" id="timer-autostart" checked>
+                    <label for="timer-autostart">Auto-start</label>
+                  </div>
+                  <div class="settings-group checkbox-group">
+                    <input type="checkbox" id="timer-sound" checked>
+                    <label for="timer-sound">Warning ticks</label>
+                  </div>
+                </div>
+                <div class="settings-group" style="margin-top: 8px;">
+                  <label for="timer-sound-type">Warning Sound Type</label>
+                  <select id="timer-sound-type" class="form-control">
+                    <option value="beep1.mp3">🔌 Digital Beep</option>
+                    <option value="alarm4.mp3">🚨 Retro Buzzer</option>
+                    <option value="chime4.mp3">🔔 Soft Chime</option>
+                    <option value="click1.wav">🪵 Woodblock Tick</option>
+                    <option value="alarm2.mp3">⏱️ Fast Ticking</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Main Content Area (Right side) -->
+    <main class="main-content">
+      <!-- Toggle button for Sidebar (visible when sidebar is closed/hidden) -->
+      <button class="open-sidebar-btn" id="open-sidebar-btn" title="Open Settings Panel">
+        ⚙️ Settings
+      </button>
+
+      <div class="wheel-stage">
+        <!-- The Canvas container which handles scaling -->
+        <div class="canvas-container">
+          <!-- Arrow Pointer pointing to the selected slot -->
+          <div class="wheel-pointer wiggle-active">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M40 20L5 37.3205L5 2.67949L40 20Z" fill="url(#pointer-gradient)" filter="url(#shadow-filter)" />
+              <defs>
+                <linearGradient id="pointer-gradient" x1="5" y1="20" x2="40" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#ff007f" />
+                  <stop offset="1" stop-color="#ff7b00" />
+                </linearGradient>
+                <filter id="shadow-filter" x="0" y="0" width="45" height="45" filterUnits="userSpaceOnUse">
+                  <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                </filter>
+              </defs>
+            </svg>
+          </div>
+          <canvas id="wheel-canvas" width="600" height="600"></canvas>
+          <div class="center-pin-clickable" id="center-spin-trigger" title="Click to SPIN!">
+            <span>SPIN</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Confetti Canvas (draws on top of everything when celebrating) -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Media & weight modal for per-name photo and odds -->
+    <div class="modal-overlay hidden" id="media-modal">
+      <div class="modal-box glass">
+        <div class="modal-header">
+          <h2>Entry Settings</h2>
+        </div>
+        <div class="modal-body">
+          <p id="media-modal-name" class="media-modal-name"></p>
+          <div class="settings-group">
+            <label>Photo</label>
+            <div id="media-preview" class="media-preview-ellipse" aria-hidden="true"></div>
+            <label for="media-file-input" class="btn btn-secondary-outline media-file-label">Choose image</label>
+            <input type="file" id="media-file-input" accept="image/*" class="hidden-file-input">
+          </div>
+          <div class="settings-group">
+            <label for="media-weight-input">Weight ratio</label>
+            <input type="number" id="media-weight-input" min="0.1" max="100" step="0.1" value="1" class="form-control">
+            <small class="helper-text">Higher weight = larger slice and better odds. Default is 1.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="media-save-btn" class="btn btn-primary">Save</button>
+          <button id="media-delete-btn" class="btn btn-danger">Remove Photo</button>
+          <button id="media-cancel-btn" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Preset Modal (opened by + button) -->
+    <div class="modal-overlay hidden" id="save-preset-modal">
+      <div class="modal-box glass">
+        <div class="modal-header">
+          <h2>💾 Save Preset</h2>
+        </div>
+        <div class="modal-body">
+          <div class="settings-group">
+            <label for="modal-preset-name">Preset name</label>
+            <input type="text" id="modal-preset-name" class="form-control" placeholder="Preset name…">
+          </div>
+          
+          <!-- Sub-section: Names & Media for preset config -->
+          <div class="sub-section expanded">
+            <div class="sub-section-header">
+              <span class="sub-title">Names & Media</span>
+              <span class="chevron-sub">▼</span>
+            </div>
+            <div class="sub-section-content">
+              <div class="sub-section-inner">
+                <div class="settings-group">
+                  <textarea id="modal-preset-names" class="form-control" rows="6" placeholder="Enter one name per line..."></textarea>
+                  <small style="opacity:0.7">This is prefilled with the current names. You can edit before saving.</small>
+                  <!-- Per-name list with media buttons for preset -->
+                  <div id="modal-preset-names-list" class="names-list" aria-live="polite"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-confirm-save-preset-btn" class="btn btn-primary">Save preset</button>
+          <button id="modal-cancel-save-preset-btn" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Winner Celebration Modal -->
+    <div class="modal-overlay hidden" id="winner-modal">
+      <div class="modal-box glass">
+        <div class="modal-body">
+          <h1 id="winner-name-display">Lukew</h1>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-remove-btn" class="btn btn-danger">Remove Name & Close</button>
+          <button id="modal-close-btn" class="btn btn-secondary">Keep Name & Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown Timer Overlay Modal -->
+    <div class="modal-overlay hidden" id="timer-modal">
+      <div class="timer-overlay-box glass">
+        <div class="timer-header">
+          <span class="timer-title-icon">⏳</span>
+          <h2>Timer Active for <span id="timer-winner-name">Lukew</span></h2>
+        </div>
+        <div class="timer-visual-container">
+          <!-- Radial Progress Circle SVG -->
+          <svg class="timer-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="timer-gradient-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f5d4" />
+                <stop offset="100%" stop-color="#00bbf9" />
+              </linearGradient>
+            </defs>
+            <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+            <circle class="timer-progress" cx="50" cy="50" r="45" id="timer-progress-circle"></circle>
+          </svg>
+          <div class="timer-text" id="timer-countdown-text">30</div>
+        </div>
+        <div class="timer-footer">
+          <div class="button-row">
+            <button id="start-timer-btn" class="btn btn-primary">▶ Start Timer</button>
+            <button id="skip-timer-btn" class="btn btn-secondary-outline btn-skip">Skip Timer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Preset Confirmation Modal -->
+  <div class="modal-overlay hidden" id="delete-preset-modal">
+    <div class="modal-box glass">
+      <div class="modal-header">
+        <h2>🗑️ Delete Preset?</h2>
+      </div>
+      <div class="modal-body">
+        <p>Delete <strong id="delete-preset-name-display"></strong>?<br><span style="opacity:0.6;font-size:13px">This can't be undone.</span></p>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-delete-preset-btn" class="btn btn-danger">Delete</button>
+        <button id="cancel-delete-preset-btn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="sounds.js"></script>
+  <script src="skins.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
