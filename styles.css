@@ -1285,6 +1285,18 @@ input[type="range"]::-webkit-slider-thumb:hover {
   text-shadow: 0 0 20px rgba(255, 89, 94, 0.5);
 }
 
+.timer-text.timer-text-overtime {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  color: #ffca3a;
+  text-shadow: 0 0 16px rgba(255, 202, 58, 0.35);
+}
+
+.timer-visual-container.timer-overtime .timer-progress {
+  stroke: #ffca3a;
+  filter: drop-shadow(0 0 8px rgba(255, 202, 58, 0.45));
+}
+
 .btn-skip {
   padding: 12px 30px;
   border-radius: 30px;

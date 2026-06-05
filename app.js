@@ -18,6 +18,7 @@ let settings = {
   timerSec: 0,
   timerAutostart: true,
   timerSound: true,
+  timerShowOvertime: false,
   sidebarSections: [true, false, false, false],
   sidebarSubSections: [true, false]
 };
@@ -235,6 +236,43 @@ let canvas, ctx;
    ========================================================================== */
 let timerInterval = null;
 let timerSecondsRemaining = 0;
+let timerOvertimeElapsed = 0;
+
+const TIMER_CIRCUMFERENCE = 282.74;
+
+function formatOvertimeDisplay(elapsedSeconds) {
+  const m = Math.floor(elapsedSeconds / 60);
+  const s = elapsedSeconds % 60;
+  return `+${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  const textEl = document.getElementById('timer-countdown-text');
+  if (!textEl) return;
+
+  if (timerOvertimeElapsed > 0) {
+    textEl.textContent = formatOvertimeDisplay(timerOvertimeElapsed);
+    textEl.classList.add('timer-text-overtime');
+  } else {
+    textEl.textContent = String(Math.max(0, timerSecondsRemaining));
+    textEl.classList.remove('timer-text-overtime');
+  }
+}
+
+function finishTimerAndShowWinner(winner) {
+  stopCountdownTimer();
+  const timerModalEl = document.getElementById('timer-modal');
+  const timerBox = timerModalEl ? timerModalEl.querySelector('.timer-overlay-box') : null;
+  if (timerBox) {
+    timerBox.style.backgroundImage = '';
+    timerBox.style.backgroundBlendMode = '';
+    timerBox.style.width = '';
+    timerBox.style.height = '';
+    timerBox.classList.remove('winner-modal-bg');
+  }
+  if (timerModalEl) timerModalEl.classList.add('hidden');
+  showWinnerModal(winner);
+}
 
 /* ==========================================================================
    Audio Synthesis (Web Audio API)
@@ -694,6 +732,7 @@ function loadState() {
         settings.soundWinnerType = 'fanfare1';
       }
       if (settings.timerSoundType === undefined) settings.timerSoundType = 'beep1.mp3';
+      if (settings.timerShowOvertime === undefined) settings.timerShowOvertime = false;
       if (settings.showBoundaries === undefined) settings.showBoundaries = false;
       if (settings.casinoTicker === undefined) settings.casinoTicker = false;
 
@@ -1182,27 +1221,28 @@ function hideWinnerModal() {
    Winner Timer Implementation
    ========================================================================== */
 function startCountdownTimer(winner) {
-  stopCountdownTimer(); // Clear existing timers
+  stopCountdownTimer();
 
   document.getElementById('timer-winner-name').innerText = winner;
-  
+
   const totalSeconds = (settings.timerMin * 60) + (settings.timerSec || 0);
-  document.getElementById('timer-countdown-text').innerText = totalSeconds;
-  
-  // Show timer overlay modal
+  timerSecondsRemaining = totalSeconds;
+  timerOvertimeElapsed = 0;
+  updateTimerDisplay();
+
   const timerModal = document.getElementById('timer-modal');
   if (timerModal) {
     setModalMediaBackground('timer-modal', '.timer-overlay-box', winner);
     timerModal.classList.remove('hidden');
   }
-  
-  // Set circle stroke dash
+
   const circle = document.getElementById('timer-progress-circle');
-  circle.style.strokeDashoffset = 0;
-  
-  timerSecondsRemaining = totalSeconds;
+  if (circle) circle.style.strokeDashoffset = 0;
+
   const container = document.querySelector('.timer-visual-container');
-  container.classList.remove('timer-warning');
+  if (container) {
+    container.classList.remove('timer-warning', 'timer-overtime');
+  }
 
   const startBtn = document.getElementById('start-timer-btn');
 
@@ -1220,43 +1260,44 @@ function runTimerCountdown(winner) {
   const totalSeconds = (settings.timerMin * 60) + (settings.timerSec || 0);
 
   stopCountdownTimer();
+  timerOvertimeElapsed = 0;
 
   timerInterval = setInterval(() => {
-    timerSecondsRemaining--;
-    
-    // Update progress circle (Circumference = 282.74)
-    const ratio = Math.max(0, timerSecondsRemaining / totalSeconds);
-    const offset = 282.74 * (1 - ratio);
-    circle.style.strokeDashoffset = offset;
-    
-    // Update digital text countdown
-    document.getElementById('timer-countdown-text').innerText = Math.max(0, timerSecondsRemaining);
-    
-    // Warning state trigger (final 3 seconds)
-    if (timerSecondsRemaining <= 3 && timerSecondsRemaining > 0) {
-      container.classList.add('timer-warning');
-      playWarningTick(timerSecondsRemaining === 1);
-    }
-    
-    // Completion of countdown
-    if (timerSecondsRemaining <= 0) {
-      stopCountdownTimer();
-      // Auto transition from timer to the winner celebration modal
-      const timerModalEl = document.getElementById('timer-modal');
-      const timerBox = timerModalEl ? timerModalEl.querySelector('.timer-overlay-box') : null;
-      if (timerBox) {
-        timerBox.style.backgroundImage = '';
-        timerBox.style.backgroundBlendMode = '';
-        timerBox.style.width = '';
-        timerBox.style.height = '';
-        timerBox.classList.remove('winner-modal-bg');
+    if (timerSecondsRemaining > 0) {
+      timerSecondsRemaining--;
+
+      const ratio = Math.max(0, timerSecondsRemaining / totalSeconds);
+      if (circle) circle.style.strokeDashoffset = TIMER_CIRCUMFERENCE * (1 - ratio);
+
+      updateTimerDisplay();
+
+      if (timerSecondsRemaining <= 3 && timerSecondsRemaining > 0) {
+        container.classList.add('timer-warning');
+        playWarningTick(timerSecondsRemaining === 1);
       }
-      timerModalEl.classList.add('hidden');
-      
-      // Play extra final fanfare beep
-      playWarningTick(true);
-      showWinnerModal(winner);
+
+      if (timerSecondsRemaining === 0) {
+        if (circle) circle.style.strokeDashoffset = TIMER_CIRCUMFERENCE;
+        container.classList.remove('timer-warning');
+        playWarningTick(true);
+        updateTimerDisplay();
+
+        if (settings.timerShowOvertime) {
+          container.classList.add('timer-overtime');
+        } else {
+          finishTimerAndShowWinner(winner);
+        }
+      }
+      return;
     }
+
+    if (settings.timerShowOvertime) {
+      timerOvertimeElapsed++;
+      updateTimerDisplay();
+      return;
+    }
+
+    finishTimerAndShowWinner(winner);
   }, 1000);
 }
 
@@ -1265,6 +1306,7 @@ function stopCountdownTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
   }
+  timerOvertimeElapsed = 0;
 }
 
 function skipTimer() {
@@ -1810,6 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('timer-sec').value = String(settings.timerSec !== undefined ? settings.timerSec : 0).padStart(2, '0');
   document.getElementById('timer-autostart').checked = settings.timerAutostart !== undefined ? settings.timerAutostart : true;
   document.getElementById('timer-sound').checked = settings.timerSound;
+  document.getElementById('timer-show-overtime').checked = settings.timerShowOvertime || false;
   document.getElementById('timer-sound-type').value = settings.timerSoundType || 'beep1.mp3';
   document.getElementById('show-boundaries').checked = settings.showBoundaries || false;
   document.getElementById('casino-ticker').checked = settings.casinoTicker || false;
@@ -2045,6 +2088,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('timer-sound').addEventListener('change', (e) => {
     settings.timerSound = e.target.checked;
+    saveState();
+  });
+  document.getElementById('timer-show-overtime').addEventListener('change', (e) => {
+    settings.timerShowOvertime = e.target.checked;
     saveState();
   });
   document.getElementById('timer-sound-type').addEventListener('change', (e) => {
