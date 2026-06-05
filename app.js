@@ -176,20 +176,11 @@ function initToolbarIcons() {
 function createEntryMediaButton(entry, idx) {
   const weight = getEntryWeight(entry);
   const mediaBtn = createIconButton(
-    'btn-icon-photo' + (entry.image ? ' has-image' : ''),
-    entry.image ? `Photo and weight (${weight}×)` : `Add photo or set weight (${weight}×)`,
-    'tpl-icon-photo',
+    'btn-icon-options' + (entry.image ? ' has-photo' : ''),
+    `Entry settings${entry.image ? ' (photo set)' : ''}${weight !== 1 ? `, weight ${weight}×` : ''}`,
+    'tpl-icon-options',
     { index: idx, action: 'media' }
   );
-
-  if (entry.image) {
-    const glyph = mediaBtn.querySelector('.btn-icon-glyph');
-    if (glyph) glyph.remove();
-  }
-
-  if (entry.image) {
-    mediaBtn.style.backgroundImage = `url(${entry.image})`;
-  }
 
   if (weight !== 1) {
     const badge = document.createElement('span');

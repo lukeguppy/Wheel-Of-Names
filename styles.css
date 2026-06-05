@@ -398,7 +398,7 @@ body {
   display: block;
 }
 
-.btn-icon-photo {
+.btn-icon-options {
   position: relative;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -406,24 +406,25 @@ body {
   box-shadow: none;
 }
 
-.btn-icon-photo:hover {
+.btn-icon-options:hover {
   filter: none;
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.28);
   color: rgba(255, 255, 255, 0.85);
 }
 
-.btn-icon-photo.has-image {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-color: rgba(255, 0, 127, 0.5);
-  box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
+.btn-icon-options.has-photo {
+  border-color: rgba(255, 0, 127, 0.45);
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.btn-icon-photo.has-image:hover {
+.btn-icon-options.has-photo:hover {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+  color: #fff;
+}
+
+.media-weight-input {
+  text-align: center;
 }
 
 .entry-weight-badge {
